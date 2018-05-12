@@ -1,0 +1,98 @@
+class TwitchTV extends React.Component{
+  /*
+    TODOS: listing, sorting, filtering
+  */
+  constructor(props){
+    super(props);
+    
+    this.state = {
+      channels: ["ESL_SC2", "OgamingSC2", "cretetion", "freecodecamp", "storbeck", "habathcx", "RobotCaleb", "noobs2ninjas", "brunofin", "comster404"]
+    };
+  }
+  
+  render(){
+    return (
+      <div>
+        <h1>Twitchtv JSON AI</h1>
+        <TwitchList channels={this.state.channels} />
+      </div>
+    );
+  }
+}
+
+class TwitchList extends React.Component{
+  constructor(props){
+    super(props);
+    var items = this.createItems(this.props.channels);
+    
+    this.state = {
+      twitchItems: items
+    };
+  }
+  
+  
+  createItems = (channels) => {
+    return channels.map((channel) => <TwitchListItemContainer channel={channel}/>);
+  };
+  
+  render(){
+    return(
+      <div>
+        {this.state.twitchItems}
+      </div>);
+  }
+}
+
+
+class TwitchListItemContainer extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      channelData: "",
+      streamData: "",
+    };
+    
+    this.ajaxTwitch(this.props.channel, 'channels')
+      .done((response) => this.setState({channelData: response.status}));
+    this.ajaxTwitch(this.props.channel, 'streams')
+      .done((response) => this.setState({streamData: response.stream}));
+  }
+  
+  ajaxTwitch = (channelName, api) => {
+    return $.ajax({
+      context: this,
+      url:'https://wind-bow.gomix.me/twitch-api/'+ api +'/' + channelName,
+      dataType: 'jsonp',
+    });
+  };
+  
+  render(){
+    return(
+      <TwitchListItem name={this.props.channel} channel={this.state.channelData} stream={this.state.streamData}/>
+    );
+  }
+}
+
+class TwitchListItem extends React.Component{
+  constructor(props){
+    super(props);
+  }
+  
+  render(){
+    var isStreaming = this.props.stream ? "Streaming" : "Not Streaming";
+    var channelStatus = this.props.channel == 404 ? "Not Active" : "Active";
+    var twitchLink = "https://www.twitch.tv/" + this.props.name;
+    
+    return(
+      <div>
+        <a href= {twitchLink} target="_blank" >{this.props.name}</a>
+        <ul>
+          <li>{channelStatus}</li>
+          <li>{isStreaming}</li>
+        </ul>
+      </div>
+    )
+  }
+}
+
+ReactDOM.render(<TwitchTV/>, document.getElementById('container'));
